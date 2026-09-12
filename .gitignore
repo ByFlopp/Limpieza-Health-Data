@@ -1,0 +1,13 @@
+# Python y Jupyter
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.pytest_cache/
+.venv/
+venv/
+
+# Salidas locales del análisis
+data/processed/*.csv
+data/processed/*.parquet
+data/processed/*.xlsx
+!data/processed/.gitkeep
