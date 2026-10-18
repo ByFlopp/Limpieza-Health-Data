@@ -2,7 +2,7 @@
 
 # Limpieza y procesamiento de datos biométricos de un smartwatch
 
-**Unidad 1 · Machine Learning · DUOC UC**
+**Unidades 1 y 2 · Machine Learning · DUOC UC**
 
 ![Python](https://img.shields.io/badge/Python-3.13-3776AB?style=flat-square&logo=python&logoColor=white)
 ![pandas](https://img.shields.io/badge/pandas-150458?style=flat-square&logo=pandas&logoColor=white)
@@ -12,9 +12,19 @@
 
 Preparación de un conjunto de 10.000 registros biométricos con tipos mal inferidos,
 categorías inconsistentes, valores faltantes y valores fisiológicamente imposibles,
-hasta dejarlo en condiciones de alimentar un modelo.
+hasta dejarlo en condiciones de alimentar un modelo, y posterior evaluación de modelos
+supervisados de regresión y clasificación sobre esos datos.
 
 </div>
+
+---
+
+## Etapas del proyecto
+
+| Etapa | Notebook | Resultado |
+|---|---|---|
+| EP1 · Exploración y preprocesamiento | [`01_limpieza_health_data.ipynb`](notebooks/01_limpieza_health_data.ipynb) | Dataset limpio, sin nulos ni valores implausibles |
+| EP3 · Machine Learning supervisado | [`02_modelamiento_supervisado.ipynb`](notebooks/02_modelamiento_supervisado.ipynb) | Ningún modelo supera a su línea base: el conjunto no contiene señal predictiva ([detalle](#ep3--modelamiento-supervisado)) |
 
 ---
 
@@ -352,6 +362,39 @@ cambio de escala.
 
 ---
 
+## EP3 · Modelamiento supervisado
+
+Desarrollo completo: **[notebooks/02_modelamiento_supervisado.ipynb](notebooks/02_modelamiento_supervisado.ipynb)**
+
+| Problema | Objetivo | Modelos (más línea base) | Mejor modelo | Resultado |
+|---|---|---|---|---|
+| Regresión | `Sleep Duration (hours)` | Ridge, KNN, Random Forest | Ridge (`alpha = 1000`) | R² CV = −0,004 · RMSE prueba = 1,52 h, igual a predecir la media |
+| Clasificación | Estrés alto (`Stress Level` ≥ 7) | Regresión logística, KNN, árbol de decisión, Random Forest | Árbol de decisión (`max_depth = 3`) con SMOTE | ROC AUC CV = 0,498, igual al azar |
+
+**Decisiones principales**
+
+- **Pipeline sin fuga de datos.** En la EP1 la imputación y el escalado se ajustaron sobre
+  los 10.000 registros. Aquí se ajustan solo con el entrenamiento, dentro de un `Pipeline`
+  que se reentrena en cada pliegue. Los registros con la variable objetivo faltante se
+  excluyen en vez de imputarse.
+- **Validación:** partición 80/20 (estratificada en clasificación) y `GridSearchCV` con 5
+  pliegues para todos los modelos. Métricas: MSE, RMSE, MAE y R² en regresión; matriz de
+  confusión, *precision*, *recall*, F1, *balanced accuracy* y ROC AUC en clasificación.
+- **Desbalance (60/40):** se compararon sin balanceo, `class_weight`, SMOTE y submuestreo.
+  Se eligió SMOTE, aplicado dentro del pipeline de `imbalanced-learn`, porque funciona con
+  los cuatro algoritmos sin descartar datos.
+- **Verificación de resultados:** un control positivo (objetivo sintético con señal, R² ≈ 0,58
+  con el mismo pipeline) demuestra que el procedimiento funciona, y una prueba de
+  permutación (p = 1,00 en regresión y p = 0,59 en clasificación) demuestra que los modelos
+  no se distinguen de uno entrenado con etiquetas al azar.
+
+**Conclusión:** con este conjunto no es posible predecir el sueño ni el estrés a partir de
+las demás mediciones, y no se recomienda desplegar ningún modelo. La causa es el origen
+simulado de los datos, ya identificado en la EP1: cada variable se generó de forma
+independiente.
+
+---
+
 ## Estructura del proyecto
 
 ```
@@ -365,7 +408,8 @@ Limpieza-Health-Data/
 │       └── smartwatch_health_data_model.csv     codificado y escalado
 │
 ├── notebooks/
-│   └── 01_limpieza_health_data.ipynb            informe técnico completo
+│   ├── 01_limpieza_health_data.ipynb            EP1: limpieza y preprocesamiento
+│   └── 02_modelamiento_supervisado.ipynb        EP3: regresión y clasificación
 │
 ├── docs/                                        material de la asignatura y rúbrica
 └── README.md
@@ -377,19 +421,23 @@ Limpieza-Health-Data/
 | [`smartwatch_health_data_clean.csv`](data/processed/smartwatch_health_data_clean.csv) | 10.000 × 6 sin nulos, en bpm, pasos y horas. Base del análisis descriptivo y de la verificación |
 | [`smartwatch_health_data_model.csv`](data/processed/smartwatch_health_data_model.csv) | El mismo contenido codificado y escalado, listo para la etapa de modelado |
 | [`01_limpieza_health_data.ipynb`](notebooks/01_limpieza_health_data.ipynb) | Código, gráficos y justificación de cada decisión |
+| [`02_modelamiento_supervisado.ipynb`](notebooks/02_modelamiento_supervisado.ipynb) | Modelos de regresión y clasificación, validación cruzada, prueba de permutación y selección |
 
 ---
 
 ## Ejecución
 
 ```bash
-pip install pandas numpy matplotlib seaborn scikit-learn jupyter
+pip install pandas numpy matplotlib seaborn scikit-learn imbalanced-learn jupyter
 jupyter notebook notebooks/01_limpieza_health_data.ipynb
+jupyter notebook notebooks/02_modelamiento_supervisado.ipynb
 ```
 
 Las celdas deben ejecutarse en orden: cada apartado opera sobre el DataFrame producido
-por el anterior. Las rutas son relativas a `notebooks/`, de modo que el notebook debe
-abrirse desde ese directorio.
+por el anterior. Las rutas son relativas a `notebooks/`, de modo que los notebooks deben
+abrirse desde ese directorio. El notebook 02 parte del CSV original y no depende de los
+archivos generados por el 01. Su ejecución completa toma entre 3 y 7 minutos según el
+equipo, por la búsqueda de hiperparámetros de los Random Forest.
 
 ---
 
