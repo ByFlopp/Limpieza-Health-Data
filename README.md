@@ -25,6 +25,7 @@ supervisados de regresión y clasificación sobre esos datos.
 |---|---|---|
 | EP1 · Exploración y preprocesamiento | [`01_limpieza_health_data.ipynb`](notebooks/01_limpieza_health_data.ipynb) | Dataset limpio, sin nulos ni valores implausibles |
 | EP3 · Machine Learning supervisado | [`02_modelamiento_supervisado.ipynb`](notebooks/02_modelamiento_supervisado.ipynb) | Ningún modelo supera a su línea base: el conjunto no contiene señal predictiva ([detalle](#ep3--modelamiento-supervisado)) |
+| Resumen visual | [`proceso_y_decisiones.html`](reports/proceso_y_decisiones.html) | Proceso, decisiones clave y resultados de ambas etapas en una sola página |
 
 ---
 
@@ -378,8 +379,9 @@ Desarrollo completo: **[notebooks/02_modelamiento_supervisado.ipynb](notebooks/0
   que se reentrena en cada pliegue. Los registros con la variable objetivo faltante se
   excluyen en vez de imputarse.
 - **Validación:** partición 80/20 (estratificada en clasificación) y `GridSearchCV` con 5
-  pliegues para todos los modelos. Métricas: MSE, RMSE, MAE y R² en regresión; matriz de
-  confusión, *precision*, *recall*, F1, *balanced accuracy* y ROC AUC en clasificación.
+  pliegues para todos los modelos. Métricas: MSE, RMSE, MAE, MAPE, R² y R² ajustado en
+  regresión; matriz de confusión, *accuracy*, *precision*, *recall*, F1, *balanced accuracy*
+  y ROC AUC en clasificación.
 - **Desbalance (60/40):** se compararon sin balanceo, `class_weight`, SMOTE y submuestreo.
   Se eligió SMOTE, aplicado dentro del pipeline de `imbalanced-learn`, porque funciona con
   los cuatro algoritmos sin descartar datos.
@@ -411,7 +413,11 @@ Limpieza-Health-Data/
 │   ├── 01_limpieza_health_data.ipynb            EP1: limpieza y preprocesamiento
 │   └── 02_modelamiento_supervisado.ipynb        EP3: regresión y clasificación
 │
+├── reports/
+│   └── proceso_y_decisiones.html                resumen visual del proceso y las decisiones
+│
 ├── docs/                                        material de la asignatura y rúbrica
+├── requirements.txt                             versiones con que se ejecutaron los notebooks
 └── README.md
 ```
 
@@ -422,13 +428,14 @@ Limpieza-Health-Data/
 | [`smartwatch_health_data_model.csv`](data/processed/smartwatch_health_data_model.csv) | El mismo contenido codificado y escalado, listo para la etapa de modelado |
 | [`01_limpieza_health_data.ipynb`](notebooks/01_limpieza_health_data.ipynb) | Código, gráficos y justificación de cada decisión |
 | [`02_modelamiento_supervisado.ipynb`](notebooks/02_modelamiento_supervisado.ipynb) | Modelos de regresión y clasificación, validación cruzada, prueba de permutación y selección |
+| [`proceso_y_decisiones.html`](reports/proceso_y_decisiones.html) | Resumen visual de ambas etapas: proceso, decisiones con su fundamento y resultados. Se abre directamente en el navegador, sin conexión |
 
 ---
 
 ## Ejecución
 
 ```bash
-pip install pandas numpy matplotlib seaborn scikit-learn imbalanced-learn jupyter
+pip install -r requirements.txt
 jupyter notebook notebooks/01_limpieza_health_data.ipynb
 jupyter notebook notebooks/02_modelamiento_supervisado.ipynb
 ```
@@ -436,8 +443,11 @@ jupyter notebook notebooks/02_modelamiento_supervisado.ipynb
 Las celdas deben ejecutarse en orden: cada apartado opera sobre el DataFrame producido
 por el anterior. Las rutas son relativas a `notebooks/`, de modo que los notebooks deben
 abrirse desde ese directorio. El notebook 02 parte del CSV original y no depende de los
-archivos generados por el 01. Su ejecución completa toma entre 3 y 7 minutos según el
-equipo, por la búsqueda de hiperparámetros de los Random Forest.
+archivos generados por el 01; si se abre fuera del repositorio (por ejemplo, en Google
+Colab), descarga ese CSV desde GitHub. Su ejecución completa toma entre 2 y 7 minutos según
+el equipo, por la búsqueda de hiperparámetros de los Random Forest. La primera celda de
+código imprime las versiones de las librerías, que deben coincidir con `requirements.txt`
+para reproducir exactamente los resultados.
 
 ---
 
