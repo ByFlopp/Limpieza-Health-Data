@@ -25,7 +25,7 @@ supervisados de regresión y clasificación sobre esos datos.
 |---|---|---|
 | EP1 · Exploración y preprocesamiento | [`01_limpieza_health_data.ipynb`](notebooks/01_limpieza_health_data.ipynb) | Dataset limpio, sin nulos ni valores implausibles |
 | EP3 · Machine Learning supervisado | [`02_modelamiento_supervisado.ipynb`](notebooks/02_modelamiento_supervisado.ipynb) | Ningún modelo supera a su línea base: el conjunto no contiene señal predictiva ([detalle](#ep3--modelamiento-supervisado)) |
-| Resumen visual | [`proceso_y_decisiones.html`](reports/proceso_y_decisiones.html) | Proceso, decisiones clave y resultados de ambas etapas en una sola página |
+| Resumen visual | [`proceso_y_decisiones_EV2.html`](reports/proceso_y_decisiones_EV2.html) | Proceso, decisiones clave y resultados de ambas etapas en una sola página |
 
 ---
 
@@ -414,7 +414,7 @@ Limpieza-Health-Data/
 │   └── 02_modelamiento_supervisado.ipynb        EP3: regresión y clasificación
 │
 ├── reports/
-│   └── proceso_y_decisiones.html                resumen visual del proceso y las decisiones
+│   └── proceso_y_decisiones_EV2.html                resumen visual del proceso y las decisiones
 │
 ├── docs/                                        material de la asignatura y rúbrica
 ├── requirements.txt                             versiones con que se ejecutaron los notebooks
@@ -428,7 +428,7 @@ Limpieza-Health-Data/
 | [`smartwatch_health_data_model.csv`](data/processed/smartwatch_health_data_model.csv) | El mismo contenido codificado y escalado, listo para la etapa de modelado |
 | [`01_limpieza_health_data.ipynb`](notebooks/01_limpieza_health_data.ipynb) | Código, gráficos y justificación de cada decisión |
 | [`02_modelamiento_supervisado.ipynb`](notebooks/02_modelamiento_supervisado.ipynb) | Modelos de regresión y clasificación, validación cruzada, prueba de permutación y selección |
-| [`proceso_y_decisiones.html`](reports/proceso_y_decisiones.html) | Resumen visual de ambas etapas: proceso, decisiones con su fundamento y resultados. Se abre directamente en el navegador, sin conexión |
+| [`proceso_y_decisiones_EV2.html`](reports/proceso_y_decisiones_EV2.html) | Resumen visual de ambas etapas: proceso, decisiones con su fundamento y resultados. Se abre directamente en el navegador, sin conexión |
 
 ---
 
