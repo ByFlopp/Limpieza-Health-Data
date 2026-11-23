@@ -2,18 +2,20 @@
 
 # Limpieza y procesamiento de datos biométricos de un smartwatch
 
-**Unidades 1 y 2 · Machine Learning · DUOC UC**
+**Unidades 1, 2 y 3 · Machine Learning · DUOC UC**
 
 ![Python](https://img.shields.io/badge/Python-3.13-3776AB?style=flat-square&logo=python&logoColor=white)
 ![pandas](https://img.shields.io/badge/pandas-150458?style=flat-square&logo=pandas&logoColor=white)
 ![NumPy](https://img.shields.io/badge/NumPy-013243?style=flat-square&logo=numpy&logoColor=white)
 ![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?style=flat-square&logo=scikitlearn&logoColor=white)
+![SciPy](https://img.shields.io/badge/SciPy-8CAAE6?style=flat-square&logo=scipy&logoColor=white)
 ![Jupyter](https://img.shields.io/badge/Jupyter-F37626?style=flat-square&logo=jupyter&logoColor=white)
 
 Preparación de un conjunto de 10.000 registros biométricos con tipos mal inferidos,
 categorías inconsistentes, valores faltantes y valores fisiológicamente imposibles,
-hasta dejarlo en condiciones de alimentar un modelo, y posterior evaluación de modelos
-supervisados de regresión y clasificación sobre esos datos.
+hasta dejarlo en condiciones de alimentar un modelo, posterior evaluación de modelos
+supervisados de regresión y clasificación sobre esos datos y, por último, búsqueda de
+grupos de registros mediante reducción de dimensionalidad y agrupamiento.
 
 </div>
 
@@ -25,7 +27,9 @@ supervisados de regresión y clasificación sobre esos datos.
 |---|---|---|
 | EP1 · Exploración y preprocesamiento | [`01_limpieza_health_data.ipynb`](notebooks/01_limpieza_health_data.ipynb) | Dataset limpio, sin nulos ni valores implausibles |
 | EP3 · Machine Learning supervisado | [`02_modelamiento_supervisado.ipynb`](notebooks/02_modelamiento_supervisado.ipynb) | Ningún modelo supera a su línea base: el conjunto no contiene señal predictiva ([detalle](#ep3--modelamiento-supervisado)) |
+| EP5 · Aprendizaje no supervisado | [`03_aprendizaje_no_supervisado.ipynb`](notebooks/03_aprendizaje_no_supervisado.ipynb) | No existen grupos naturales: los únicos grupos reproducen los niveles de `Activity Level` ([detalle](#ep5--aprendizaje-no-supervisado)) |
 | Resumen visual | [`proceso_y_decisiones_EV2.html`](reports/proceso_y_decisiones_EV2.html) | Proceso, decisiones clave y resultados de ambas etapas en una sola página |
+| Resumen visual EP5 | [`proceso_y_decisiones_EV3.html`](reports/proceso_y_decisiones_EV3.html) | Proceso, decisiones (D15 a D24) y resultados del aprendizaje no supervisado |
 
 ---
 
@@ -397,6 +401,37 @@ independiente.
 
 ---
 
+## EP5 · Aprendizaje no supervisado
+
+Desarrollo completo: **[notebooks/03_aprendizaje_no_supervisado.ipynb](notebooks/03_aprendizaje_no_supervisado.ipynb)**
+
+| Etapa | Técnica | Resultado |
+|---|---|---|
+| Selección de características | Rol y cardinalidad, `VarianceThreshold` (umbral 0,01) y Spearman (umbral 0,8) | Se descarta `User ID`; se conservan las seis variables biométricas |
+| Reducción lineal | PCA con análisis paralelo de Horn | Las seis componentes explican ≈ 16,7 % cada una; ninguna supera la referencia sin estructura |
+| Reducción no lineal | t-SNE (perplejidades 5, 30 y 100) | Tres islas, que coinciden exactamente con los tres niveles de `Activity Level` |
+| Agrupamiento | K-Means, jerárquico aglomerativo y DBSCAN | Silhouette de 0,129, 0,081 y 0,087: "sin estructura sustancial" en la escala de Kaufman y Rousseeuw |
+
+**Decisiones principales**
+
+- **Preprocesamiento para distancias.** Z-score para las seis variables (en la EP1 las
+  ordinales iban con Min-Max y habrían pesado entre 6 y 10 veces menos en la distancia) y
+  transformación de Yeo-Johnson para la asimetría de `Step Count`.
+- **Regla común de selección:** mayor Silhouette, con un grupo mínimo del 5 % de los registros
+  y, en DBSCAN, un ruido máximo del 10 %. Sin la restricción de tamaño, el enlace `average`
+  habría ganado con un "grupo" de 2 registros extremos.
+- **Verificación de resultados**, con la misma lógica de la EP3: una referencia con las columnas
+  permutadas (10 réplicas sin relaciones entre variables) obtiene los mismos índices que los
+  datos reales, y un control positivo (`make_blobs`, 4 grupos) recupera `k = 4` con
+  Silhouette 0,52 y ARI 0,997.
+
+**Conclusión:** el conjunto no contiene grupos naturales. Los grupos de DBSCAN reproducen los
+niveles de `Activity Level` (ARI 0,88) y los dos de K-Means separan la actividad declarada
+baja de la alta, sin diferencias en pulso, pasos, sueño ni estrés. No se recomienda usar
+ninguna segmentación con estos datos: la causa es, otra vez, el origen simulado del conjunto.
+
+---
+
 ## Estructura del proyecto
 
 ```
@@ -411,10 +446,12 @@ Limpieza-Health-Data/
 │
 ├── notebooks/
 │   ├── 01_limpieza_health_data.ipynb            EP1: limpieza y preprocesamiento
-│   └── 02_modelamiento_supervisado.ipynb        EP3: regresión y clasificación
+│   ├── 02_modelamiento_supervisado.ipynb        EP3: regresión y clasificación
+│   └── 03_aprendizaje_no_supervisado.ipynb      EP5: reducción de dimensionalidad y agrupamiento
 │
 ├── reports/
-│   └── proceso_y_decisiones_EV2.html                resumen visual del proceso y las decisiones
+│   ├── proceso_y_decisiones_EV2.html            resumen visual de la EP1 y la EP3
+│   └── proceso_y_decisiones_EV3.html            resumen visual de la EP5
 │
 ├── docs/                                        material de la asignatura y rúbrica
 ├── requirements.txt                             versiones con que se ejecutaron los notebooks
@@ -428,7 +465,9 @@ Limpieza-Health-Data/
 | [`smartwatch_health_data_model.csv`](data/processed/smartwatch_health_data_model.csv) | El mismo contenido codificado y escalado, listo para la etapa de modelado |
 | [`01_limpieza_health_data.ipynb`](notebooks/01_limpieza_health_data.ipynb) | Código, gráficos y justificación de cada decisión |
 | [`02_modelamiento_supervisado.ipynb`](notebooks/02_modelamiento_supervisado.ipynb) | Modelos de regresión y clasificación, validación cruzada, prueba de permutación y selección |
+| [`03_aprendizaje_no_supervisado.ipynb`](notebooks/03_aprendizaje_no_supervisado.ipynb) | Selección de características, PCA y t-SNE, K-Means, jerárquico y DBSCAN, índices de validación interna, referencia por permutación y control positivo |
 | [`proceso_y_decisiones_EV2.html`](reports/proceso_y_decisiones_EV2.html) | Resumen visual de ambas etapas: proceso, decisiones con su fundamento y resultados. Se abre directamente en el navegador, sin conexión |
+| [`proceso_y_decisiones_EV3.html`](reports/proceso_y_decisiones_EV3.html) | Resumen visual de la EP5: selección de características, reducción de dimensionalidad, agrupamiento, validación y registro de decisiones D15 a D24. Se abre directamente en el navegador |
 
 ---
 
@@ -438,14 +477,16 @@ Limpieza-Health-Data/
 pip install -r requirements.txt
 jupyter notebook notebooks/01_limpieza_health_data.ipynb
 jupyter notebook notebooks/02_modelamiento_supervisado.ipynb
+jupyter notebook notebooks/03_aprendizaje_no_supervisado.ipynb
 ```
 
 Las celdas deben ejecutarse en orden: cada apartado opera sobre el DataFrame producido
 por el anterior. Las rutas son relativas a `notebooks/`, de modo que los notebooks deben
-abrirse desde ese directorio. El notebook 02 parte del CSV original y no depende de los
-archivos generados por el 01; si se abre fuera del repositorio (por ejemplo, en Google
-Colab), descarga ese CSV desde GitHub. Su ejecución completa toma entre 2 y 7 minutos según
-el equipo, por la búsqueda de hiperparámetros de los Random Forest. La primera celda de
+abrirse desde ese directorio. Los notebooks 02 y 03 parten del CSV original y no dependen de
+los archivos generados por el 01; si se abren fuera del repositorio (por ejemplo, en Google
+Colab), descargan ese CSV desde GitHub. La ejecución completa del 02 toma entre 2 y 7 minutos
+según el equipo, por la búsqueda de hiperparámetros de los Random Forest, y la del 03 unos
+4 minutos, por el t-SNE, los árboles jerárquicos y las réplicas por permutación. La primera celda de
 código imprime las versiones de las librerías, que deben coincidir con `requirements.txt`
 para reproducir exactamente los resultados.
 
@@ -456,7 +497,9 @@ para reproducir exactamente los resultados.
 El procedimiento de limpieza es íntegramente aplicable a datos reales. La ausencia casi
 total de correlación entre las variables, en cambio, es un artefacto del carácter
 simulado del conjunto —cada columna fue generada de forma independiente— y limita el
-alcance interpretativo del análisis, aunque no la validez del tratamiento aplicado.
+alcance interpretativo del análisis, aunque no la validez del tratamiento aplicado. La
+misma causa explica los resultados de la EP3 (ninguna variable predice a otra) y de la EP5
+(las variables no se combinan en grupos).
 
 ---
 
